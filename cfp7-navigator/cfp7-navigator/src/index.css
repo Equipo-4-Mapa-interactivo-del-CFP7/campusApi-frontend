@@ -1,0 +1,57 @@
+/* src/index.css */
+/* Importamos la tipografía oficial Nunito Sans desde Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap');
+
+:root {
+  --font-official: 'Nunito Sans', 'Inter', sans-serif;
+  --color-primary-btn: #737373; /* Gris oficial para acciones principales */
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-official);
+  background-color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* --- CLASES DE BOTONES RECTANGULARES AL 100% --- */
+
+/* Botón Principal (Gris relleno) */
+.btn-primary-figma {
+  width: 100%;
+  padding: 14px;
+  background-color: var(--color-primary-btn);
+  color: #ffffff;
+  border: none;
+  border-radius: 6px; /* Formato geométrico oficial */
+  font-family: var(--font-official);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  box-sizing: border-box;
+}
+
+.btn-primary-figma:hover {
+  background-color: #5a5a5a;
+}
+
+/* Botón Secundario (Blanco con contorno gris) */
+.btn-secondary-figma {
+  width: 100%;
+  padding: 14px;
+  background-color: #ffffff;
+  color: #000000;
+  border: 1px solid var(--color-primary-btn);
+  border-radius: 6px; /* Formato geométrico oficial */
+  font-family: var(--font-official);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  box-sizing: border-box;
+}
+
+.btn-secondary-figma:hover {
+  background-color: #f5f5f5;
+}
