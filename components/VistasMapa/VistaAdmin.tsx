@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
     LogOut, ShieldAlert, MapPin, Users, TriangleAlert,
     Settings2, Plus, CheckCircle2, XCircle, ChevronRight,
@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { mockAvisoActivo, mockIncidencias, mockSanitariosAbiertos, Incidencia } from "@/data/mockData";
 import { PerfilUsuario } from "@/app/page";
+import { fetchApi } from "@/services/api";
 
 interface Props {
     onLogout: () => void;
@@ -13,10 +14,43 @@ interface Props {
     perfil: PerfilUsuario | null;
 }
 
+interface Usuario {
+    id: number;
+    dni: string;
+    rol: string;
+    nombre: string;
+    apellido: string;
+    activo: boolean;
+}
+
 export default function VistaAdmin({ onLogout, onVolver, perfil }: Props) {
     const [avisoActivo, setAvisoActivo] = useState(mockAvisoActivo);
     const [sanitariosAbiertos, setSanitariosAbiertos] = useState(mockSanitariosAbiertos);
     const [incidencias, setIncidencias] = useState<Incidencia[]>(mockIncidencias);
+    const [usuarios, setUsuarios] = useState<Usuario[]>([]);
+    const [cargandoUsuarios, setCargandoUsuarios] = useState(true);
+
+    useEffect(() => {
+        const cargarUsuarios = async () => {
+            setCargandoUsuarios(true);
+            try {
+                const data = await fetchApi('/usuarios?size=20');
+                // BLINDAJE: Verificamos que 'content' exista y sea un array
+                if (data && Array.isArray(data.content)) {
+                    setUsuarios(data.content);
+                } else {
+                    console.warn("La API devolvió un formato inesperado:", data);
+                    setUsuarios([]);
+                }
+            } catch (err) {
+                console.error("Falló la carga", err);
+                setUsuarios([]); // Fallback a array vacío para evitar crash
+            } finally {
+                setCargandoUsuarios(false);
+            }
+        };
+        cargarUsuarios();
+    }, []);
 
     return (
         <div className="flex flex-col h-full bg-gray-50 flex-1 overflow-y-auto overflow-x-hidden pb-8">
@@ -173,31 +207,39 @@ export default function VistaAdmin({ onLogout, onVolver, perfil }: Props) {
                         </div>
                     </section>
 
-                    {/* 4. GESTIÓN DE USUARIOS ADMIN */}
+                    {/* 4. GESTIÓN DE USUARIOS */}
                     <section className="bg-white p-5 rounded-3xl shadow-sm border border-gray-100">
                         <h2 className="text-sm font-black text-gray-800 flex items-center mb-4">
                             <Users className="mr-2 text-purple-500" size={20} />
-                            Administradores
+                            Administradores y Personal
                         </h2>
 
                         <div className="space-y-2 mb-4">
-                            <div className="flex items-center justify-between p-3 border border-gray-100 rounded-xl">
-                                <div className="flex items-center">
-                                    <div className="w-8 h-8 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center mr-3 font-bold text-xs">J</div>
-                                    <span className="text-sm font-bold text-gray-700">Admin (Vos)</span>
-                                </div>
-                                <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-1 rounded-md font-bold uppercase">SuperAdmin</span>
-                            </div>
-
-                            <div className="flex items-center justify-between p-3 border border-gray-100 rounded-xl">
-                                <div className="flex items-center">
-                                    <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mr-3 font-bold text-xs">D</div>
-                                    <span className="text-sm font-bold text-gray-700">Director CFP</span>
-                                </div>
-                                <button className="text-red-400 hover:text-red-600 p-1 cursor-pointer">
-                                    <XCircle size={18} />
-                                </button>
-                            </div>
+                            {cargandoUsuarios ? (
+                                <p className="text-xs text-gray-400 animate-pulse">Cargando lista...</p>
+                            ) : usuarios.length > 0 ? (
+                                usuarios.map((u) => (
+                                    <div key={u.id} className="flex items-center justify-between p-3 border border-gray-100 rounded-xl hover:bg-gray-50 transition-colors">
+                                        <div className="flex items-center">
+                                            {/* BLINDAJE: usamos charAt(0) y un fallback 'U' por si el nombre está vacío */}
+                                            <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mr-3 font-bold text-xs uppercase">
+                                                {u.nombre?.charAt(0) || 'U'}
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="text-sm font-bold text-gray-700">
+                                                    {u.nombre || 'Sin nombre'} {u.apellido || ''}
+                                                </span>
+                                                <span className="text-[10px] text-gray-400">{u.rol || 'N/A'}</span>
+                                            </div>
+                                        </div>
+                                        <span className={`text-[10px] px-2 py-1 rounded-md font-bold uppercase ${u.activo ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
+                                            {u.activo ? 'Activo' : 'Inactivo'}
+                                        </span>
+                                    </div>
+                                ))
+                            ) : (
+                                <p className="text-xs text-gray-400">No se encontraron usuarios.</p>
+                            )}
                         </div>
 
                         <button className="w-full flex items-center justify-center py-3 bg-gray-50 border-2 border-dashed border-gray-200 text-gray-500 rounded-xl font-bold text-sm hover:bg-gray-100 hover:text-gray-700 transition-colors cursor-pointer">

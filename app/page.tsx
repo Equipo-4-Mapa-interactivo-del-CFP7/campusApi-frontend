@@ -46,7 +46,7 @@ export default function Home() {
     if (!token) return;
 
     try {
-      const respuesta = await fetch('/api-backend/api/usuarios/me', {
+      const respuesta = await fetch('/api/usuarios/me', {
         method: 'GET',
         headers: {
           'Authorization': `${tokenType} ${token}`,

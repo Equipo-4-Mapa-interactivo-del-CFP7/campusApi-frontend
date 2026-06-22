@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, Lock, User } from 'lucide-react';
+import { login } from "@/services/auth/auth";
 
 interface Props {
     onCerrar: () => void;
@@ -18,36 +19,12 @@ export default function ModalLogin({ onCerrar, onLoginExitoso }: Props) {
         setError(false);
 
         try {
-            // 1. Se hace la llamada al endpoint de login de back ADAPTAMOS EL FETCH TEMPORALMENTE PARA TRABAJAR CON NGROK como lo configuramos en next.config.ts
-            const respuesta = await fetch('/api-backend/api/auth/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                // 2. Se envían los datos ingresados en el modal
-                body: JSON.stringify({
-                    dni: dni,
-                    password: password
-                })
-            });
-
-            // 3. Verificamos si back nos da el 200 OK
-            if (respuesta.ok) {
-                const data = await respuesta.json();
-
-                // El back nos proporciona un Token JWT
-                // Lo guardamos en el navegador
-                if (data.accessToken) {
-                    localStorage.setItem('token', data.accessToken);
-                    localStorage.setItem('tokenType', data.tokenType);
-                }
-                onLoginExitoso(); // cerramos el modal y vamos al panel
-            } else {
-                setError(true);
-            }
+            await login(dni, password);
+            onLoginExitoso();
         } catch (error) {
-            console.error("Error conectando al backend:", error);
             setError(true)
+        } finally {
+            setCargando(false);
         }
     };
 
