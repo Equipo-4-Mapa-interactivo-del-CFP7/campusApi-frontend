@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(req: NextRequest) {
   const token = req.headers.get('Authorization');
-  const backendUrl = process.env.BACKEND_URL || "http://localhost:8081";
+  const backendUrl = process.env.BACKEND_URL;
 
   try {
     const res = await fetch(`${backendUrl}/api/usuarios/me`, {

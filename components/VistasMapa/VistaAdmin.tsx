@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { mockAvisoActivo, mockIncidencias, mockSanitariosAbiertos, Incidencia } from "@/data/mockData";
 import { PerfilUsuario } from "@/app/page";
-import { fetchApi } from "@/services/api";
+import { userService } from "@/services/user";
 
 interface Props {
     onLogout: () => void;
@@ -34,12 +34,11 @@ export default function VistaAdmin({ onLogout, onVolver, perfil }: Props) {
         const cargarUsuarios = async () => {
             setCargandoUsuarios(true);
             try {
-                const data = await fetchApi('/usuarios?size=20');
+                const data = await userService.listar({ size: 20 });
                 // BLINDAJE: Verificamos que 'content' exista y sea un array
                 if (data && Array.isArray(data.content)) {
                     setUsuarios(data.content);
                 } else {
-                    console.warn("La API devolvió un formato inesperado:", data);
                     setUsuarios([]);
                 }
             } catch (err) {
@@ -51,6 +50,24 @@ export default function VistaAdmin({ onLogout, onVolver, perfil }: Props) {
         };
         cargarUsuarios();
     }, []);
+
+    const manejarCambioEstado = async (dni: string) => {
+        try {
+            await userService.cambiarEstado(dni);
+            
+            // Magia UI: En vez de recargar todos los usuarios del servidor,
+            // solo invertimos el estado 'activo' del usuario que tocamos en nuestra memoria local.
+            // Esto hace que la pantalla reaccione INSTANTÁNEAMENTE.
+            setUsuarios(usuariosPrevios => 
+                usuariosPrevios.map(u => 
+                    u.dni === dni ? { ...u, activo: !u.activo } : u
+                )
+            );
+            
+        } catch (error: any) {
+            alert("Error al cambiar el estado: " + error.message);
+        }
+    };
 
     return (
         <div className="flex flex-col h-full bg-gray-50 flex-1 overflow-y-auto overflow-x-hidden pb-8">
@@ -232,9 +249,13 @@ export default function VistaAdmin({ onLogout, onVolver, perfil }: Props) {
                                                 <span className="text-[10px] text-gray-400">{u.rol || 'N/A'}</span>
                                             </div>
                                         </div>
-                                        <span className={`text-[10px] px-2 py-1 rounded-md font-bold uppercase ${u.activo ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
+                                        <button 
+                                            onClick={() => manejarCambioEstado(u.dni)}
+                                            title={u.activo ? "Click para desactivar" : "Click para activar"}
+                                            className={`text-[10px] px-2 py-1 rounded-md font-bold uppercase cursor-pointer hover:opacity-80 transition-opacity ${u.activo ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}
+                                        >
                                             {u.activo ? 'Activo' : 'Inactivo'}
-                                        </span>
+                                        </button>
                                     </div>
                                 ))
                             ) : (

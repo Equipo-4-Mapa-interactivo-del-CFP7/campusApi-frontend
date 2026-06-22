@@ -1,0 +1,148 @@
+export interface FiltrosUsuario {
+    page?: number;
+    size?: number;
+    dni?: string;
+    nombre?: string;
+    apellido?: string;
+    activo?: boolean;
+}
+
+const getAuthHeaders = (): Record<string, string> => {
+    if (typeof window === 'undefined')
+        return { 'Content-Type': 'application/json' };
+
+    const token = localStorage.getItem('token');
+    const tokenType = localStorage.getItem('tokenType') || 'Bearer';
+
+    return {
+        'Authorization': `${tokenType} ${token}`,
+        'Content-Type': 'application/json',
+    };
+};
+
+export const userService = {
+    /**
+     * Registra un nuevo usuario en el sistema.
+     * Requiere que el usuario actual tenga rol ADMIN o OWNER.
+     */
+    registrar: async (userData: { dni: string; nombre: string; apellido: string }) => {
+        const res = await fetch('/api/usuarios/registrar', {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify(userData),
+        });
+
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok) {
+            throw new Error(data.message || 'Error al registrar usuario');
+        }
+
+        return data; // Retornamos el JSON de respuesta exitosa
+    },
+
+    // GET /api/usuarios (con filtros)
+    listar: async (filtros: FiltrosUsuario = {}) => {
+        // Magia Senior: Convertimos el objeto de filtros en una query string (?page=0&size=10)
+        // Ignorando automáticamente los filtros que estén vacíos o undefined
+        const params = new URLSearchParams();
+
+        Object.entries(filtros).forEach(([key, value]) => {
+            if (value !== undefined && value !== '') {
+                params.append(key, String(value));
+            }
+        });
+
+        const respuesta = await fetch(`/api/usuarios?${params.toString()}`, {
+            method: 'GET',
+            headers: getAuthHeaders(),
+        });
+
+        const data = await respuesta.json().catch(() => ({}));
+
+        if (!respuesta.ok) {
+            throw new Error(data.message || 'Error al obtener la lista de usuarios');
+        }
+
+        return data; // Esto devolverá la estructura de Paginación de Spring (content, totalPages, etc.)
+    },
+
+    /**
+     * Restablece la contraseña de un usuario a su propio DNI.
+     */
+    restablecerPassword: async (dni: string) => {
+        const respuesta = await fetch(`/api/usuarios/${dni}/restablecer`, {
+            method: 'PUT',
+            headers: getAuthHeaders(),
+        });
+        const data = await respuesta.json().catch(() => ({}));
+        if (!respuesta.ok) throw new Error(data.message || 'Error al restablecer contraseña');
+        return data;
+    },
+
+    /**
+     * Cambia el estado (activo/inactivo) de una cuenta.
+     */
+    cambiarEstado: async (dni: string) => {
+        const respuesta = await fetch(`/api/usuarios/${dni}/cambiar-activo`, {
+            method: 'PUT',
+            headers: getAuthHeaders(),
+        });
+        const data = await respuesta.json().catch(() => ({}));
+        if (!respuesta.ok) throw new Error(data.message || 'Error al cambiar estado de cuenta');
+        return data;
+    },
+
+    /**
+     * Alterna el rol del usuario (ADMIN / PERSONAL).
+     */
+    cambiarRol: async (dni: string) => {
+        const respuesta = await fetch(`/api/usuarios/${dni}/cambiar-rol`, {
+            method: 'PUT',
+            headers: getAuthHeaders(),
+        });
+        const data = await respuesta.json().catch(() => ({}));
+        if (!respuesta.ok) throw new Error(data.message || 'Error al cambiar el rol');
+        return data;
+    },
+
+    /**
+     * Cambia la contraseña del usuario logueado.
+     */
+    cambiarMiPassword: async (passwords: { actual: string; nueva: string }) => {
+        const respuesta = await fetch('/api/usuarios/me/password', {
+            method: 'PUT',
+            headers: getAuthHeaders(),
+            body: JSON.stringify(passwords),
+        });
+        const data = await respuesta.json().catch(() => ({}));
+        if (!respuesta.ok) throw new Error(data.message || 'Error al actualizar contraseña');
+        return data;
+    },
+
+    /**
+     * Obtiene los datos del perfil de un usuario específico (Solo Admin).
+     */
+    obtenerPerfilAdmin: async (dni: string) => {
+        const respuesta = await fetch(`/api/usuarios/${dni}`, {
+            method: 'GET', // Importante: este es GET
+            headers: getAuthHeaders(),
+        });
+        const data = await respuesta.json().catch(() => ({}));
+        if (!respuesta.ok) throw new Error(data.message || 'Error al obtener el perfil');
+        return data;
+    },
+
+    /**
+     * Obtiene el perfil del usuario actualmente logueado.
+     */
+    obtenerMiPerfil: async () => {
+        const respuesta = await fetch('/api/usuarios/me', {
+            method: 'GET',
+            headers: getAuthHeaders(),
+        });
+        const data = await respuesta.json().catch(() => ({}));
+        if (!respuesta.ok) throw new Error(data.message || 'No se pudo obtener el perfil de usuario');
+        return data;
+    },
+};

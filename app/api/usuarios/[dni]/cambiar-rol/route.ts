@@ -1,7 +1,9 @@
-// app/api/usuarios/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET(req: NextRequest) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ dni: string }> }) {
+    const resolvedParams = await params;
+    const dni = resolvedParams.dni;
+
     const token = req.headers.get('Authorization');
     const backendUrl = process.env.BACKEND_URL;
 
@@ -9,13 +11,10 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ error: 'Configuración faltante' }, { status: 500 });
     }
 
-    // Extraemos mágicamente todos los parámetros de la URL (?nombre=Juan&page=0)
-    const { searchParams } = new URL(req.url);
-
     try {
-        // Le pegamos al backend sumándole la cadena de parámetros exacta
-        const res = await fetch(`${backendUrl}/api/usuarios?${searchParams.toString()}`, {
-            method: 'GET',
+        // Usamos el params.dni para armar la URL hacia Java
+        const res = await fetch(`${backendUrl}/api/usuarios/${dni}/cambiar-rol`, {
+            method: 'PUT',
             headers: {
                 'Authorization': token || '',
                 'Content-Type': 'application/json',
@@ -26,7 +25,7 @@ export async function GET(req: NextRequest) {
         return NextResponse.json(data, { status: res.status });
         
     } catch (error) {
-        console.error("Error en proxy de listar usuarios:", error);
+        console.error(`Error cambiando rol para ${dni}:`, error);
         return NextResponse.json({ error: 'Fallo al conectar con el backend' }, { status: 500 });
     }
 }
