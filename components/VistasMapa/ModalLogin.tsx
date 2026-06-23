@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Lock, User } from 'lucide-react';
+import { X, Lock, User, Eye, EyeOff } from 'lucide-react';
 import { login } from "@/services/auth/auth";
 
 interface Props {
@@ -10,8 +10,11 @@ interface Props {
 export default function ModalLogin({ onCerrar, onLoginExitoso }: Props) {
     const [dni, setDni] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState(false);
     const [cargando, setCargando] = useState(false);
+    const dniInvalido = /[^0-9]/.test(dni);
+    const formularioValido = dni.trim() !== "" && password.trim() !== "" && !dniInvalido;
 
     const manejarSubmit = async (e: React.FormEvent) => {
         e.preventDefault(); // Evita que la página se recargue
@@ -44,8 +47,8 @@ export default function ModalLogin({ onCerrar, onLoginExitoso }: Props) {
                     <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
                         <Lock className="text-blue-600" size={28} />
                     </div>
-                    <h2 className="text-2xl font-black text-gray-900 tracking-tight">Acceso Admin</h2>
-                    <p className="text-sm text-gray-500 mt-1">Ingresá tus credenciales para continuar</p>
+                    <h2 className="text-2xl font-black text-gray-900 tracking-tight">Portal de gestión</h2>
+                    <p className="text-sm text-gray-500 mt-1">Identificate para continuar</p>
                 </div>
 
                 <form onSubmit={manejarSubmit} className="space-y-4">
@@ -60,17 +63,29 @@ export default function ModalLogin({ onCerrar, onLoginExitoso }: Props) {
                             className={`w-full pl-12 pr-4 py-3.5 bg-gray-50 border ${error ? 'border-red-400 focus:ring-red-500/20' : 'border-gray-200 focus:ring-blue-500/20'} rounded-2xl text-sm focus:outline-none focus:ring-4 focus:border-blue-500 transition-all font-medium text-gray-800`}
                         />
                     </div>
+                    {dniInvalido && (
+                        <p className="text-xs text-red-500 font-medium pl-1 -mt-2">
+                            El usuario solo puede contener números.
+                        </p>
+                    )}
 
                     {/* Input Contraseña */}
                     <div className="relative">
                         <Lock className="absolute left-4 top-3.5 text-gray-400" size={20} />
                         <input
-                            type="password"
+                            type={showPassword ? "text" : "password"}
                             placeholder="Contraseña"
                             value={password}
                             onChange={(e) => { setPassword(e.target.value); setError(false); }}
                             className={`w-full pl-12 pr-4 py-3.5 bg-gray-50 border ${error ? 'border-red-400 focus:ring-red-500/20' : 'border-gray-200 focus:ring-blue-500/20'} rounded-2xl text-sm focus:outline-none focus:ring-4 focus:border-blue-500 transition-all font-medium text-gray-800`}
                         />
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-4 top-3.5 text-gray-400 hover:text-gray-600 focus:outline-none"
+                        >
+                            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                        </button>
                     </div>
 
                     {/* Mensaje de Error */}
@@ -83,7 +98,11 @@ export default function ModalLogin({ onCerrar, onLoginExitoso }: Props) {
                     {/* Botón Submit */}
                     <button
                         type="submit"
-                        className="w-full py-4 mt-2 bg-blue-600 text-white rounded-2xl font-bold text-base hover:bg-blue-700 transition-all active:scale-95 shadow-md shadow-blue-500/30 cursor-pointer"
+                        disabled={!formularioValido}
+                        className={`w-full py-4 mt-2 rounded-2xl font-bold text-base transition-all ${formularioValido
+                                ? 'bg-blue-600 text-white hover:bg-blue-700 active:scale-95 shadow-md shadow-blue-500/30 cursor-pointer'
+                                : 'bg-blue-300 text-white cursor-not-allowed'
+                            }`}
                     >
                         Iniciar Sesión
                     </button>
