@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Nunito_Sans } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"], weight: ["400","700","800","900"] });
+const inter = Nunito_Sans({ subsets: ["latin"], weight: ["400","700","800","900"] });
 
 export const metadata: Metadata = {
   title: "CFP Mapa Interactivo",

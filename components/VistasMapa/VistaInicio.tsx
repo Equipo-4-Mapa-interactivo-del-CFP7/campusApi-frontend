@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Map, MapPinned, TriangleAlert, Settings, Search, ChevronRight, Users, Coffee, UserCircle2, Navigation, LogOut } from 'lucide-react';
+import { Map, MapPinned, TriangleAlert, Settings, Search, DoorOpen, Users, UserCircle2, Navigation, LogOut, X, ChevronRight } from 'lucide-react';
 import Image from 'next/image';
 import ModalLogin from "./ModalLogin";
-import { getTamañoTexto } from "@/utils/accesibilidad";
 import { useAccesibilidad } from "@/context/AccesibilidadContext";
 import { PerfilUsuario } from "@/app/page";
 
@@ -17,6 +16,8 @@ interface Props {
     onIrAccesibilidad: () => void;
     onIrComoLlegar: () => void;
     perfil: PerfilUsuario | null;
+    onIniciarNavegacion: (origen?: string, destino?: string) => void;
+    onIrMapaInterior: () => void;
 };
 
 export default function VistaInicio({
@@ -29,53 +30,70 @@ export default function VistaInicio({
     onLoginSuccess,
     onIrAccesibilidad,
     onIrComoLlegar,
-    perfil
+    perfil,
+    onIniciarNavegacion,
+    onIrMapaInterior
 }: Props) {
-    const [busqueda, setBusqueda] = useState("");
+
     const [saludo, setSaludo] = useState("¡Hola!");
     const [mostrarLogin, setMostrarLogin] = useState(false);
     const { config } = useAccesibilidad();
+    const [mostrarAviso, setMostrarAviso] = useState(false);
+    // Estado para controlar qué acceso se está previsualizando
+    const [previaAcceso, setPreviaAcceso] = useState<string | null>(null);
+
+    // Lista dinámica de accesos (evita repetir código)
+    const listaAccesos = [
+        { nombre: "Entrada Ramsay", color: "text-blue-500", bg: "bg-blue-50", hover: "group-hover:bg-blue-500" },
+        { nombre: "Entrada Dragones", color: "text-purple-500", bg: "bg-purple-50", hover: "group-hover:bg-purple-500" },
+        { nombre: "Entrada Juramento", color: "text-emerald-500", bg: "bg-emerald-50", hover: "group-hover:bg-emerald-500" },
+        { nombre: "Entrada Echeverria", color: "text-amber-500", bg: "bg-amber-50", hover: "group-hover:bg-amber-500" },
+        { nombre: "Entrada Olazábal", color: "text-rose-500", bg: "bg-rose-50", hover: "group-hover:bg-rose-500" },
+    ];
 
     useEffect(() => {
         const horaActual = new Date().getHours();
         if (horaActual >= 6 && horaActual < 12) {
-            setSaludo("Buenos días,");
+            setSaludo("Buenos días");
         } else if (horaActual >= 12 && horaActual < 20) {
-            setSaludo("Buenas tardes,");
+            setSaludo("Buenas tardes");
         } else {
-            setSaludo("Buenas noches,");
+            setSaludo("Buenas noches");
         }
     }, []);
 
-    const sectoresFiltrados = busqueda.length > 0
-        ? sectores.filter((sector) => sector.toLocaleLowerCase().includes(busqueda.toLocaleLowerCase()))
-        : [];
 
     return (
         <div className="flex flex-col flex-1 w-full bg-gray-50 min-h-screen">
 
-            {/* HEADER CON IMAGEN (CFP) DE FONDO */}
-            <header className="relative px-6 pt-12 pb-8 min-h-80 flex flex-col justify-end border-b border-gray-100 rounded-b-3xl shadow-sm">
-                <div className="absolute inset-0 z-0 overflow-hidden rounded-b-3xl">
+            {/* HEADER IMAGEN (CFP) DE FONDO */}
+            {/* Se agrega md:min-h-[380px] para darle un poco más de aire en PC */}
+            <header className="relative px-6 pt-12 pb-8 min-h-80 md:min-h-95 flex flex-col justify-end border-b border-gray-100 rounded-b-3xl shadow-sm">
+                <div className="absolute inset-0 z-0 flex flex-col overflow-hidden rounded-b-3xl">
                     <Image
-                        src="/Image_CFP71080.png"
+                        src="/Home-bg-CFP7.png"
                         alt="Frente del CFP N.7"
-                        fill
+                        width={1268}
+                        height={272}
                         sizes="(max-width: 768px) 100vw,
                                 (max-width: 1200px) 80vw,
                                 60vw"
-                        className="object-cover opacity-80"
+                        /* LÓGICA RESPONSIVE: 
+                           En celulares -> w-full h-auto (normal)
+                           En md/lg -> altura congelada a 180px/220px y object-cover para que recorte sin deformarse */
+                        className="w-full h-auto md:h-45 lg:h-75 md:object-cover md:object-center shrink-0"
                         priority
                     />
-                    <div className="absolute inset-0 bg-linear-to-b from-transparent via-gray-100/80 to-gray-100"></div>
+                    <div className="flex-1 w-full bg-linear-to-b from-[#41b0cb] to-gray-100 -mt-px"></div>
                 </div>
 
                 {/* Contenedor centralizado */}
                 <div className="w-full max-w-5xl mx-auto relative z-30 flex flex-col h-full justify-end">
 
                     {/* LÓGICA CONDICIONAL DE BOTONES */}
-                    <div className="absolute -top-6 right-0 md:right-4 z-40">
-                        {estaLogueado ? (
+
+                    {estaLogueado && (
+                        <div className="absolute -top-6 right-0 md:right-4 z-40">
                             <div className="flex items-center gap-2">
                                 <span className="hidden md:flex items-center px-3 py-2 bg-white/90 backdrop-blur-md rounded-xl text-xs font-bold text-gray-700 shadow-sm border border-gray-100">
                                     <UserCircle2 size={16} className="text-blue-500 mr-1" />
@@ -96,177 +114,217 @@ export default function VistaInicio({
                                     <LogOut size={16} />
                                 </button>
                             </div>
-                        ) : (
-                            <button
-                                onClick={() => setMostrarLogin(true)}
-                                className="group flex items-center px-4 py-2.5 bg-white/90 backdrop-blur-md border border-white/50 rounded-2xl shadow-sm hover:shadow-md hover:bg-white transition-all active:scale-95 cursor-pointer"
-                            >
-                                <UserCircle2 size={18} className="text-gray-500 mr-2 group-hover:text-blue-600 transition-colors" />
-                                <span className="text-xs font-bold text-gray-700 group-hover:text-blue-900 transition-colors">
-                                    Acceder
-                                </span>
-                            </button>
-                        )}
-                    </div>
+                        </div>
+                    )}
+
 
                     <div className="relative z-30 w-full mt-4 flex flex-col items-center">
-                        <h1 className={getTamañoTexto(config.textoGrande, 'font-black leading-none tracking-tight text-blue-900 mb-6 text-center drop-shadow-sm')}>
-                            CFP N.7
-                        </h1>
-
                         <div className="text-center mb-6 space-y-2 w-full">
                             <p className="text-2xl font-black leading-none tracking-tight text-gray-800 drop-shadow-sm">{saludo}</p>
-                            <p className="text-lg font-bold leading-none tracking-normal text-gray-700 drop-shadow-sm">¿A dónde querés ir?</p>
+                           {/* <p className="text-lg font-bold leading-none tracking-normal text-gray-700 drop-shadow-sm">Seleccioná tu punto de partida</p> */}
                         </div>
 
-                        {/* Buscador inteligente */}
-                        <div className="relative z-30 w-full max-w-md md:max-w-2xl mx-auto mt-2">
-                            <div className="relative group">
-                                <input
-                                    type="text"
-                                    placeholder="Buscar aula, oficina o sector..."
-                                    value={busqueda}
-                                    onChange={(e) => setBusqueda(e.target.value)}
-                                    className="w-full pl-5 pr-12 py-4 bg-white border border-gray-200 rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-md text-gray-800 font-medium placeholder:text-gray-400"
-                                />
-                                <Search className="absolute right-4 top-4 text-gray-400 group-focus-within:text-blue-500 transition-colors" size={20} />
-                            </div>
-
-                            {/* Resultados del buscador */}
-                            {busqueda.length > 0 && sectoresFiltrados.length > 0 && (
-                                <div className="absolute top-full left-0 w-full mt-2 bg-white/95 backdrop-blur-md border border-gray-100 rounded-2xl shadow-xl overflow-hidden divide-y divide-gray-50 z-70">
-                                    {sectoresFiltrados.map((sector) => (
-                                        <button
-                                            key={sector}
-                                            onClick={() => onSeleccionarDestino(sector)}
-                                            className="group w-full flex items-center justify-between px-5 py-4 hover:bg-blue-50 transition-colors cursor-pointer text-left"
-                                        >
-                                            <div className="flex items-center">
-                                                <MapPinned size={18} className="text-gray-400 group-hover:text-blue-500 mr-3 transition-colors" />
-                                                <span className="font-bold text-gray-700 group-hover:text-blue-900">{sector}</span>
-                                            </div>
-                                            <ChevronRight size={18} className="text-gray-300 group-hover:text-blue-500 transition-colors" />
-                                        </button>
-                                    ))}
+                        {/* Buscador inteligente 
+                        <div className="relative z-30 w-full max-w-md md:max-w-2xl mx-auto">
+                            <button
+                                onClick={() => onIniciarNavegacion()}
+                                className="w-full relative group text-left cursor-text active:scale-[0.98] transition-transform"
+                                aria-label="Abrir buscador de mapa"
+                            >
+                                <div className="w-full pl-5 pr-12 py-4 bg-white border border-gray-200 rounded-2xl text-sm shadow-md text-gray-500 font-medium">
+                                    Buscar aula, oficina o sector...
                                 </div>
-                            )}
-
-                            {/* Si no hay resultados, se muestra esto */}
-                            {busqueda.length > 0 && sectoresFiltrados.length === 0 && (
-                                <div className="absolute top-full left-0 w-full mt-2 bg-white border border-gray-100 rounded-2xl shadow-xl p-6 text-center z-70">
-                                    <Search size={24} className="mx-auto text-gray-300 mb-2" />
-                                    <p className="text-sm font-bold text-gray-600">No encontramos "{busqueda}"</p>
-                                    <p className="text-xs text-gray-400 mt-1">Intentá con otro nombre o sector</p>
-                                </div>
-                            )}
-                        </div>
+                                <Search className="absolute right-4 top-4 text-gray-400 group-hover:text-blue-500 transition-colors" size={20} />
+                            </button>
+                        </div> */}
                     </div>
                 </div>
             </header>
 
-            {/* Sección "Dashboard" */}
-            <section className="w-full max-w-5xl mx-auto px-6 flex flex-col relative z-20 -mt-6">
+            {/* Sección Principal de Acciones */}
+            <section className="w-full max-w-5xl mx-auto px-6 flex flex-col relative z-20 pt-2">
 
-                {/* Banner de Aviso Dinámico - Se conectaría con Backend en un futuro */}
-                <div className="w-full mb-6 bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start shadow-md hover:shadow-lg transition-shadow cursor-pointer">
-                    <TriangleAlert className="text-amber-500 mr-3 shrink-0 mt-0.5" size={20} />
-                    <div>
-                        <h3 className="text-sm font-bold text-amber-900">Aviso de Accesibilidad</h3>
-                        <p className="text-xs text-amber-700 mt-1 leading-relaxed">
-                            Los sanitarios están en mantenimiento. Por favor, evitá usarlos o pedí asistencia.
-                        </p>
+                {/* Banner de Aviso Dinámico */}
+                {mostrarAviso && (
+                    <div className="w-full mb-6 bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start shadow-md hover:shadow-lg transition-shadow cursor-pointer">
+                        <TriangleAlert className="text-amber-500 mr-3 shrink-0 mt-0.5" size={20} />
+                        <div>
+                            <h3 className="text-sm font-bold text-amber-900">Aviso de Accesibilidad</h3>
+                            <p className="text-xs text-amber-700 mt-1 leading-relaxed">
+                                Los sanitarios de planta baja están en mantenimiento. Por favor, utilizá los del primer piso.
+                            </p>
+                        </div>
                     </div>
-                </div>
+                )}
 
-                <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 ml-2">
-                    Navegación
+                {/* BOTÓN DESTACADO PARA MAPA INTERIOR */}
+                <button
+                    onClick={onIrMapaInterior}
+                    className="w-full mb-8 relative overflow-hidden group bg-white border border-gray-100 rounded-3xl p-0 shadow-sm hover:shadow-lg transition-all active:scale-[0.98]"
+                >
+                    {/* Fondo decorativo */}
+                    <div className="absolute inset-0 bg-linear-to-r from-blue-50 to-transparent opacity-50 group-hover:opacity-100 transition-opacity"></div>
+                    
+                    <div className="relative p-5 flex items-center justify-between z-10">
+                        <div className="flex items-center gap-4">
+                            {/* Ícono principal con sombra de color */}
+                            <div className="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-md shadow-blue-200 group-hover:scale-110 transition-transform">
+                                <Map size={24} />
+                            </div>
+                            <div className="text-left">
+                                <h3 className="text-lg font-black text-gray-800">Mapa Interior (botón provisorio)</h3>
+                                <p className="text-sm text-gray-500 font-medium mt-0.5">Explorar aulas, talleres y pasillos</p>
+                            </div>
+                        </div>
+                        {/* Flechita indicadora de acción */}
+                        <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-blue-100 group-hover:text-blue-600 transition-colors shrink-0">
+                            <ChevronRight size={24} />
+                        </div>
+                    </div>
+                </button>
+
+                {/* LUGARES/ENTRADAS FRECUENTES */}
+                <h2 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3 ml-2 mt-2">
+                    Seleccioná tu punto de partida
                 </h2>
-
-                {/* Tarjetas de Aulas/Sectores Rápidos */}
-                <div className="grid grid-cols-2 gap-3 md:gap-6 mb-2">
-                    <button
-                        onClick={onIrComoLlegar}
-                        className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:border-blue-200 hover:bg-blue-50/50 transition-all text-center group cursor-pointer flex flex-col items-center"
-                    >
-                        <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-3 group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                            <Navigation size={20} strokeWidth={2.5} />
-                        </div>
-                        <h3 className="font-bold text-gray-800 text-sm group-hover:text-blue-900 transition-colors">CÓMO LLEGAR</h3>
-                        <p className="text-[10px] text-gray-400 mt-0.5">Indicaciones para llegar a la entrada del CFP N.7 desde donde estás.</p>
-                    </button>
-
-                    <button
-                        onClick={() => onSeleccionarDestino("Comedor")}
-                        className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:border-orange-200 hover:bg-orange-50/50 transition-all text-center group cursor-pointer flex flex-col items-center"
-                    >
-                        <div className="w-10 h-10 rounded-xl bg-orange-50 text-orange-500 flex items-center justify-center mb-3 group-hover:bg-orange-500 group-hover:text-white transition-colors">
-                            <Map size={20} strokeWidth={2.5} />
-                        </div>
-                        <h3 className="font-bold text-gray-800 text-sm group-hover:text-orange-900 transition-colors">DENTRO DEL CFP</h3>
-                        <p className="text-[10px] text-gray-400 mt-0.5">Encontrá el aula o espacio que buscás dentro del edificio.</p>
-                    </button>
+                
+                {/* GRID DE ETIQUETAS (CHIPS/PILLS) ESTILO PREMIUM */}
+                <div className="flex flex-wrap gap-3 mb-8">
+                    {listaAccesos.map((acceso) => (
+                        <button 
+                            key={acceso.nombre}
+                            onClick={() => setPreviaAcceso(acceso.nombre)}
+                            className="flex items-center pl-2 pr-4 py-2 bg-white border border-gray-100 shadow-sm hover:border-blue-300 hover:shadow-md rounded-full transition-all active:scale-95 group"
+                        >
+                            {/* El circulito de color con el ícono */}
+                            <div className={`w-8 h-8 rounded-full ${acceso.bg} ${acceso.color} flex items-center justify-center mr-2 group-hover:scale-110 transition-transform`}>
+                                <MapPinned size={16} />
+                            </div>
+                            {/* El texto del acceso */}
+                            <span className="text-sm font-bold text-gray-700 group-hover:text-blue-700 transition-colors">
+                                {acceso.nombre}
+                            </span>
+                        </button>
+                    ))}
                 </div>
             </section>
 
-            {/* Accesos Rápidos */}
-            <footer className="w-full max-w-5xl mx-auto px-6 pb-8 mt-6 flex-1 flex flex-col">
-                <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4 ml-2">Accesos Rápidos</h2>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
-
-                    <button className="flex flex-col items-center p-5 bg-white shadow-sm hover:shadow-md border border-gray-100 rounded-3xl text-center transition-all active:scale-95 group">
-                        <Map
-                            strokeWidth={2}
-                            className="w-8 h-8 mb-3 text-blue-500 group-hover:text-blue-600 group-hover:-translate-y-1 transition-all"
-                        />
-                        <span className="text-xs font-bold text-gray-700 uppercase tracking-tight group-hover:text-blue-900 transition-colors">Rutas</span>
-                        <span className="text-[10px] text-gray-400 mt-1">Tus guardadas</span>
-                    </button>
-
-                    <button
-                        onClick={onIrASectores}
-                        className="flex flex-col items-center p-5 bg-white shadow-sm hover:shadow-md border border-gray-100 rounded-3xl text-center transition-all active:scale-95 group cursor-pointer"
+            {/* SECCIÓN EXTERIOR Y AJUSTES */}
+            <footer className="w-full max-w-5xl mx-auto px-6 pb-8 flex-1 flex flex-col justify-end">
+                <div className="bg-white rounded-3xl p-2 shadow-sm border border-gray-100 flex items-center justify-between">
+                    
+                    {/* Cómo llegar al edificio desde su casa u otra ubicación (usa maps)*/}
+                    <button 
+                        onClick={onIrComoLlegar}
+                        className="flex-1 flex items-center p-3 hover:bg-gray-50 rounded-2xl transition-colors group text-left"
                     >
-                        <MapPinned
-                            strokeWidth={2}
-                            className="w-8 h-8 mb-3 text-green-500 group-hover:text-green-600 group-hover:-translate-y-1 transition-all"
-                        />
-                        <span className="text-xs font-bold text-gray-700 uppercase tracking-tight group-hover:text-green-900 transition-colors">Sectores</span>
-                        <span className="text-[10px] text-gray-400 mt-1">Aulas y oficinas</span>
+                        <div className="w-10 h-10 rounded-xl bg-gray-100 text-gray-600 flex items-center justify-center mr-3 group-hover:bg-blue-100 group-hover:text-blue-600 transition-colors shrink-0">
+                            <MapPinned size={20} />
+                        </div>
+                        <div>
+                            <p className="text-sm font-bold text-gray-800 group-hover:text-blue-700">¿Cómo llegar al CFP?</p>
+                            <p className="text-[10px] text-gray-400">Ver rutas de colectivo y mapa exterior</p>
+                        </div>
                     </button>
 
-                    <button className="flex flex-col items-center p-5 bg-white shadow-sm hover:shadow-md border border-gray-100 rounded-3xl text-center transition-all active:scale-95 group">
-                        <TriangleAlert
-                            strokeWidth={2}
-                            className="w-8 h-8 mb-3 text-amber-500 group-hover:text-amber-600 group-hover:-translate-y-1 transition-all"
-                        />
-                        <span className="text-xs font-bold text-gray-700 uppercase tracking-tight group-hover:text-amber-900 transition-colors">Reportes</span>
-                        <span className="text-[10px] text-gray-400 mt-1">Incidencias</span>
-                    </button>
+                    {/* Separador */}
+                    <div className="w-px h-12 bg-gray-100 mx-2"></div>
 
-                    <button
+                    {/* Ajustes de Accesibilidad*/}
+                    <button 
                         onClick={onIrAccesibilidad}
-                        className="flex flex-col items-center p-5 bg-white shadow-sm hover:shadow-md border border-gray-100 rounded-3xl text-center transition-all active:scale-95 group">
-                        <Settings
-                            strokeWidth={2}
-                            className="w-8 h-8 mb-3 text-purple-500 group-hover:text-purple-600 group-hover:-translate-y-1 transition-all"
-                        />
-                        <span className="text-xs font-bold text-gray-700 uppercase tracking-tight group-hover:text-purple-900 transition-colors">Ajustes</span>
-                        <span className="text-[10px] text-gray-400 mt-1">Accesibilidad</span>
+                        className="p-4 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-2xl transition-colors"
+                        aria-label="Ajustes de accesibilidad"
+                    >
+                        <Settings size={24} />
                     </button>
-
                 </div>
             </footer>
 
             {/* Renderizado de modal */}
-            {mostrarLogin && (
-                <ModalLogin
-                    onCerrar={() => setMostrarLogin(false)}
-                    onLoginExitoso={() => {
-                        setMostrarLogin(false);
-                        onLoginSuccess();
-                    }}
-                />
+            {
+                mostrarLogin && (
+                    <ModalLogin
+                        onCerrar={() => setMostrarLogin(false)}
+                        onLoginExitoso={() => {
+                            setMostrarLogin(false);
+                            onLoginSuccess();
+                        }}
+                    />
+                )
+            }
+
+            {/* BOTÓN DE LOGIN (Solo se muestra si NO está logueado) */}
+            {/*
+                !estaLogueado && (
+                    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-max">
+                        <button
+                            onClick={() => setMostrarLogin(true)}
+                            className="group flex items-center justify-center px-4 py-2.5 bg-white/90 backdrop-blur-md border border-white/50 rounded-2xl shadow-sm hover:shadow-md hover:bg-white transition-all active:scale-95 cursor-pointer"
+                        >
+                            <UserCircle2 size={18} className="text-gray-500 mr-2 group-hover:text-blue-600 transition-colors" />
+                            <span className="flex flex-col items-center text-xs font-bold text-gray-700 group-hover:text-blue-900 transition-colors">
+                                <span>¿Sos parte del equipo del CFP 7?</span>
+                                <span>Accedé al área de gestión.</span>
+                            </span>
+                        </button>
+                    </div>
+                )
+            */}
+
+            {/* BOTTOM SHEET DE PREVISUALIZACIÓN */}
+            {previaAcceso && (
+                <div className="fixed inset-0 z-9999 flex items-end justify-center bg-gray-900/40 backdrop-blur-sm animate-in fade-in duration-200">
+                    
+                    {/* Fondo invisible para cerrar al hacer clic afuera */}
+                    <div className="absolute inset-0" onClick={() => setPreviaAcceso(null)}></div>
+
+                    {/* Tarjeta interactiva */}
+                    <div className="relative w-full max-w-md bg-white rounded-t-4xl p-6 shadow-2xl animate-in slide-in-from-bottom-8 duration-300">
+                        
+                        {/* Botón Cerrar */}
+                        <button 
+                            onClick={() => setPreviaAcceso(null)}
+                            className="absolute top-4 right-4 p-2 bg-gray-100 rounded-full text-gray-500 hover:bg-gray-200 transition-colors z-10"
+                        >
+                            <X size={20} />
+                        </button>
+
+                        <h3 className="text-xl font-black text-gray-800 mb-4 pr-8">
+                            {previaAcceso}
+                        </h3>
+
+                        {/* Contenedor de la Foto */}
+                        <div className="w-full h-48 bg-gray-200 rounded-2xl mb-6 overflow-hidden relative shadow-inner border border-gray-100">
+                            <Image
+                                src={`/images/${previaAcceso.toLowerCase().replace(/\s+/g, '_')}.png`}
+                                alt={`Foto de ${previaAcceso}`}
+                                fill
+                                className="object-cover"
+                            />
+                            {/* Etiqueta superpuesta */}
+                            <div className="absolute bottom-3 left-3 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold text-gray-700 shadow-sm">
+                                Vista del acceso exterior
+                            </div>
+                        </div>
+
+                        <p className="text-sm text-gray-500 mb-6 text-center px-2">
+                            Asegurate de estar ubicado frente a este acceso antes de iniciar la navegación.
+                        </p>
+
+                        <button 
+                            onClick={() => {
+                                onIniciarNavegacion(previaAcceso, "CFP7");
+                                setPreviaAcceso(null); // Cerramos el modal
+                            }}
+                            className="w-full flex items-center justify-center py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-lg transition-all active:scale-95 shadow-[0_4px_20px_rgba(37,99,235,0.3)]"
+                        >
+                            <MapPinned className="mr-2" size={20} />
+                            Iniciar recorrido
+                        </button>
+                    </div>
+                </div>
             )}
-        </div>
+        </div >
     );
 }

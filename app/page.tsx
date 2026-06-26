@@ -24,10 +24,23 @@ export interface PerfilUsuario {
 
 const VistaComollegar = dynamic(
   () => import('@/components/VistasMapa/VistaComollegar'),
-  { 
+  {
     ssr: false,
     loading: () => <p className="text-center p-4 text-gray-500">Cargando módulo de mapa...</p>
   }
+);
+
+const VistaMapaNavegacion = dynamic(
+  () => import('@/components/VistasMapa/VistaMapaNavegacion'),
+  {
+    ssr: false,
+    loading: () => <p className="text-center p-4 text-gray-500">Cargando interfaz de mapas...</p>
+  }
+);
+
+const VistaMapaInterior = dynamic(
+    () => import('@/components/VistasMapa/VistaMapaInterior'), 
+    { ssr: false }
 );
 
 
@@ -39,6 +52,9 @@ export default function Home() {
   const [origen, setOrigen] = useState("");
   const [estaLogueado, setEstaLogueado] = useState(false);
   const [perfil, setPerfil] = useState<PerfilUsuario | null>(null)
+  // Estados para rutas directas
+  const [origenDirecto, setOrigenDirecto] = useState<string | undefined>(undefined);
+  const [destinoDirecto, setDestinoDirecto] = useState<string | undefined>(undefined);
 
   const obtenerPerfil = async () => {
     const token = localStorage.getItem('token');
@@ -53,7 +69,7 @@ export default function Home() {
           'Content-Type': 'application/json',
         }
       });
-      
+
       if (respuesta.ok) {
         const data = await respuesta.json();
         setPerfil(data);
@@ -69,7 +85,7 @@ export default function Home() {
   useEffect(() => {
     obtenerPerfil();
   }, []);
-  
+
   const manejarLoginExitoso = () => {
     setEstaLogueado(true);
     obtenerPerfil();
@@ -91,10 +107,7 @@ export default function Home() {
     setVistaActual("inicio"); // Lo mandamos al inicio por seguridad
   };
 
-  const mockSectores = ["Herrería", "Climatización", "Carpintería", "Gastronomía A", "Gastronomía B", "Gastronomía C", "Electricidad", "Serigrafía",
-    "Taller de bicicletería", "Área de talleres dinámicos", "Laboratorio de Informática A", "Laboratorio de Informática B", "Aula 1", "Aula 2", "Aula 3 - SUM", "Aula 4",
-    "Aula 5", "Informes", "Oficina de estudiantes", "Preceptoría"
-  ];
+  const mockSectores = [""];
   const mockOrigenes = ["Entrada Principal", "Patio Central", "Entrada 2"];
 
   // 2. FUNCIONES
@@ -138,7 +151,13 @@ export default function Home() {
               <VistaInicio
                 onIrASectores={irASectores}
                 sectores={mockSectores}
-                onSeleccionarDestino={seleccionarDestino}            
+                onSeleccionarDestino={seleccionarDestino}
+                onIniciarNavegacion={(origen, destino) => {
+                  setOrigenDirecto(origen);
+                  setDestinoDirecto(destino);
+                  setVistaActual("navegacion");
+                }}
+
                 onIrAccesibilidad={() => setVistaActual("accesibilidad")}
                 onIrComoLlegar={() => setVistaActual("comoLlegar")}
                 estaLogueado={estaLogueado}
@@ -146,7 +165,8 @@ export default function Home() {
                 onLogout={manejarLogout}
                 onLoginSuccess={manejarLoginExitoso}
                 onIrAdmin={() => setVistaActual("admin")}
-                
+                onIrMapaInterior={() => setVistaActual('mapa_interior')}
+
               />
             )}
 
@@ -200,8 +220,28 @@ export default function Home() {
 
             {vistaActual === "comoLlegar" && (
               <VistaComollegar
-              onVolver={() => setVistaActual("inicio")}
+                onVolver={() => setVistaActual("inicio")}
               />
+            )}
+
+            {vistaActual === "navegacion" && (
+              <VistaMapaNavegacion
+                sectores={mockSectores}
+                origenInicial={origenDirecto}
+                destinoInicial={destinoDirecto}
+                onVolver={() => {
+                  setVistaActual("inicio")
+                  //Limpiar la memoria al volver
+                  setOrigenDirecto(undefined);
+                  setDestinoDirecto(undefined);
+                }}
+              />
+            )}
+
+            {vistaActual === 'mapa_interior' && (
+                <VistaMapaInterior 
+                    onVolver={() => setVistaActual('inicio')} 
+                />
             )}
 
           </div>
