@@ -10,7 +10,7 @@ interface Props {
     sectores: string[];
     onSeleccionarDestino: (sector: string) => void;
     estaLogueado: boolean;
-    onIrAdmin: () => void;
+    onIrPanel: () => void;
     onLogout: () => void;
     onLoginSuccess: () => void;
     onIrAccesibilidad: () => void;
@@ -25,7 +25,7 @@ export default function VistaInicio({
     sectores,
     onSeleccionarDestino,
     estaLogueado,
-    onIrAdmin,
+    onIrPanel,
     onLogout,
     onLoginSuccess,
     onIrAccesibilidad,
@@ -90,53 +90,55 @@ export default function VistaInicio({
                 {/* Contenedor centralizado */}
                 <div className="w-full max-w-5xl mx-auto relative z-30 flex flex-col h-full justify-end">
 
-                    {/* LÓGICA CONDICIONAL DE BOTONES */}
+                    {/* Barra superior con Login / Usuario */}
+                    <div className="absolute top-6 right-1 z-50">
+                        {!estaLogueado ? (
+                            <button
+                                onClick={() => setMostrarLogin(true)}
+                                className="flex items-center gap-3 bg-white/95 backdrop-blur-xl px-5 py-3 rounded-2xl border border-white/60 shadow-lg hover:shadow-xl hover:bg-white transition-all active:scale-95 group"
+                            >
+                                <UserCircle2 size={22} className="text-gray-600 group-hover:text-blue-600 transition-colors" />
+                                <div className="text-left">
+                                    <p className="text-sm font-semibold text-gray-800">Iniciar sesión</p>
+                                    <p className="text-xs text-gray-500 -mt-0.5">Equipo CFP 7</p>
+                                </div>
+                            </button>
+                        ) : (
+                            <div className="flex items-center gap-3">
+                                <div className="hidden md:flex items-center bg-white/90 backdrop-blur-md px-4 py-2 rounded-2xl text-sm font-medium text-gray-700 shadow">
+                                    <UserCircle2 size={18} className="mr-2 text-blue-600" />
+                                    Hola, {perfil?.nombre || 'Admin'}
+                                </div>
 
-                    {estaLogueado && (
-                        <div className="absolute -top-6 right-0 md:right-4 z-40">
-                            <div className="flex items-center gap-2">
-                                <span className="hidden md:flex items-center px-3 py-2 bg-white/90 backdrop-blur-md rounded-xl text-xs font-bold text-gray-700 shadow-sm border border-gray-100">
-                                    <UserCircle2 size={16} className="text-blue-500 mr-1" />
-                                    {perfil ? `Hola, ${perfil.nombre}` : 'Admin activo'}
-                                </span>
                                 <button
-                                    onClick={onIrAdmin}
-                                    className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-xl shadow-sm hover:bg-blue-700 transition active:scale-95 cursor-pointer text-xs font-bold"
+                                    onClick={onIrPanel}
+                                    className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-2xl font-semibold text-sm transition-all active:scale-95 shadow"
                                 >
-                                    <Settings size={16} className="mr-2" />
-                                    Panel de Control
+                                    <Settings size={18} />
+                                    Panel
                                 </button>
+
                                 <button
                                     onClick={onLogout}
-                                    className="flex items-center p-2 bg-white/90 backdrop-blur-md text-red-500 border border-red-100 hover:text-white hover:bg-red-500 rounded-xl shadow-sm transition active:scale-95 cursor-pointer"
+                                    className="p-3 bg-white/90 backdrop-blur-md text-red-500 hover:bg-red-500 hover:text-white rounded-2xl transition-all active:scale-95"
                                     title="Cerrar sesión"
                                 >
-                                    <LogOut size={16} />
+                                    <LogOut size={20} />
                                 </button>
                             </div>
-                        </div>
-                    )}
+                        )}
+                    </div>
 
 
-                    <div className="relative z-30 w-full mt-4 flex flex-col items-center">
-                        <div className="text-center mb-6 space-y-2 w-full">
-                            <p className="text-2xl font-black leading-none tracking-tight text-gray-800 drop-shadow-sm">{saludo}</p>
-                           {/* <p className="text-lg font-bold leading-none tracking-normal text-gray-700 drop-shadow-sm">Seleccioná tu punto de partida</p> */}
-                        </div>
-
-                        {/* Buscador inteligente 
-                        <div className="relative z-30 w-full max-w-md md:max-w-2xl mx-auto">
-                            <button
-                                onClick={() => onIniciarNavegacion()}
-                                className="w-full relative group text-left cursor-text active:scale-[0.98] transition-transform"
-                                aria-label="Abrir buscador de mapa"
-                            >
-                                <div className="w-full pl-5 pr-12 py-4 bg-white border border-gray-200 rounded-2xl text-sm shadow-md text-gray-500 font-medium">
-                                    Buscar aula, oficina o sector...
-                                </div>
-                                <Search className="absolute right-4 top-4 text-gray-400 group-hover:text-blue-500 transition-colors" size={20} />
-                            </button>
-                        </div> */}
+                    <div className="relative z-10 px-6 pb-10 max-w-5xl mx-auto w-full">
+                        <div className="text-white">
+                            <p className="text-4xl md:text-5xl font-black tracking-tighter mb-2 drop-shadow-sm">
+                                {saludo}
+                            </p>
+                            <p className="text-xl md:text-2xl font-light text-white/90">
+                                ¿Dónde empezamos hoy?
+                            </p>
+                        </div> 
                     </div>
                 </div>
             </header>
@@ -164,7 +166,7 @@ export default function VistaInicio({
                 >
                     {/* Fondo decorativo */}
                     <div className="absolute inset-0 bg-linear-to-r from-blue-50 to-transparent opacity-50 group-hover:opacity-100 transition-opacity"></div>
-                    
+
                     <div className="relative p-5 flex items-center justify-between z-10">
                         <div className="flex items-center gap-4">
                             {/* Ícono principal con sombra de color */}
@@ -187,11 +189,11 @@ export default function VistaInicio({
                 <h2 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3 ml-2 mt-2">
                     Seleccioná tu punto de partida
                 </h2>
-                
+
                 {/* GRID DE ETIQUETAS (CHIPS/PILLS) ESTILO PREMIUM */}
                 <div className="flex flex-wrap gap-3 mb-8">
                     {listaAccesos.map((acceso) => (
-                        <button 
+                        <button
                             key={acceso.nombre}
                             onClick={() => setPreviaAcceso(acceso.nombre)}
                             className="flex items-center pl-2 pr-4 py-2 bg-white border border-gray-100 shadow-sm hover:border-blue-300 hover:shadow-md rounded-full transition-all active:scale-95 group"
@@ -212,9 +214,9 @@ export default function VistaInicio({
             {/* SECCIÓN EXTERIOR Y AJUSTES */}
             <footer className="w-full max-w-5xl mx-auto px-6 pb-8 flex-1 flex flex-col justify-end">
                 <div className="bg-white rounded-3xl p-2 shadow-sm border border-gray-100 flex items-center justify-between">
-                    
+
                     {/* Cómo llegar al edificio desde su casa u otra ubicación (usa maps)*/}
-                    <button 
+                    <button
                         onClick={onIrComoLlegar}
                         className="flex-1 flex items-center p-3 hover:bg-gray-50 rounded-2xl transition-colors group text-left"
                     >
@@ -231,7 +233,7 @@ export default function VistaInicio({
                     <div className="w-px h-12 bg-gray-100 mx-2"></div>
 
                     {/* Ajustes de Accesibilidad*/}
-                    <button 
+                    <button
                         onClick={onIrAccesibilidad}
                         className="p-4 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-2xl transition-colors"
                         aria-label="Ajustes de accesibilidad"
@@ -254,36 +256,19 @@ export default function VistaInicio({
                 )
             }
 
-            {/* BOTÓN DE LOGIN (Solo se muestra si NO está logueado) */}
-            {/*
-                !estaLogueado && (
-                    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-max">
-                        <button
-                            onClick={() => setMostrarLogin(true)}
-                            className="group flex items-center justify-center px-4 py-2.5 bg-white/90 backdrop-blur-md border border-white/50 rounded-2xl shadow-sm hover:shadow-md hover:bg-white transition-all active:scale-95 cursor-pointer"
-                        >
-                            <UserCircle2 size={18} className="text-gray-500 mr-2 group-hover:text-blue-600 transition-colors" />
-                            <span className="flex flex-col items-center text-xs font-bold text-gray-700 group-hover:text-blue-900 transition-colors">
-                                <span>¿Sos parte del equipo del CFP 7?</span>
-                                <span>Accedé al área de gestión.</span>
-                            </span>
-                        </button>
-                    </div>
-                )
-            */}
 
             {/* BOTTOM SHEET DE PREVISUALIZACIÓN */}
             {previaAcceso && (
                 <div className="fixed inset-0 z-9999 flex items-end justify-center bg-gray-900/40 backdrop-blur-sm animate-in fade-in duration-200">
-                    
+
                     {/* Fondo invisible para cerrar al hacer clic afuera */}
                     <div className="absolute inset-0" onClick={() => setPreviaAcceso(null)}></div>
 
                     {/* Tarjeta interactiva */}
                     <div className="relative w-full max-w-md bg-white rounded-t-4xl p-6 shadow-2xl animate-in slide-in-from-bottom-8 duration-300">
-                        
+
                         {/* Botón Cerrar */}
-                        <button 
+                        <button
                             onClick={() => setPreviaAcceso(null)}
                             className="absolute top-4 right-4 p-2 bg-gray-100 rounded-full text-gray-500 hover:bg-gray-200 transition-colors z-10"
                         >
@@ -312,7 +297,7 @@ export default function VistaInicio({
                             Asegurate de estar ubicado frente a este acceso antes de iniciar la navegación.
                         </p>
 
-                        <button 
+                        <button
                             onClick={() => {
                                 onIniciarNavegacion(previaAcceso, "CFP7");
                                 setPreviaAcceso(null); // Cerramos el modal

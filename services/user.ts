@@ -83,8 +83,8 @@ export const userService = {
     /**
      * Cambia el estado (activo/inactivo) de una cuenta.
      */
-    cambiarEstado: async (dni: string) => {
-        const respuesta = await fetch(`/api/usuarios/${dni}/cambiar-activo`, {
+    cambiarEstado: async (id: string) => {
+        const respuesta = await fetch(`/api/usuarios/${id}/cambiar-activo`, {
             method: 'PUT',
             headers: getAuthHeaders(),
         });
@@ -145,4 +145,22 @@ export const userService = {
         if (!respuesta.ok) throw new Error(data.message || 'No se pudo obtener el perfil de usuario');
         return data;
     },
+
+    registrarPersonal: async (datos: {dni: string; nombre: string; apellido: string; rol: string;}, token: string) => {
+        const response = await fetch('/api/usuarios/registrar', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}` // Token que viene del Admin
+            },
+            body: JSON.stringify(datos)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Error al registrar usuario');
+        }
+        return await response.json();
+    }
 };
+

@@ -9,11 +9,10 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ error: 'Configuración faltante' }, { status: 500 });
     }
 
-    // Extraemos mágicamente todos los parámetros de la URL (?nombre=Juan&page=0)
+    // Extraemos todos los parámetros de la URL (?nombre=Juan&page=0)
     const { searchParams } = new URL(req.url);
 
     try {
-        // Le pegamos al backend sumándole la cadena de parámetros exacta
         const res = await fetch(`${backendUrl}/api/usuarios?${searchParams.toString()}`, {
             method: 'GET',
             headers: {

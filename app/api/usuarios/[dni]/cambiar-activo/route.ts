@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ dni: string }> }) {
-    // 2. Extraemos el DNI usando await
+    // Extraemos el DNI usando await
     const resolvedParams = await params;
     const dni = resolvedParams.dni;
 

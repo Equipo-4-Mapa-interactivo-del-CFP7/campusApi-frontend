@@ -11,6 +11,7 @@ import VistaAdmin from "@/components/VistasMapa/VistaAdmin";
 import VistaAccesibilidad from "@/components/VistasMapa/VistaAccesibilidad";
 import { AccesibilidadProvider } from "@/context/AccesibilidadContext";
 import LayoutAccesibilidad from "@/components/LayoutAccesibilidad";
+import VistaPersonal from "@/components/VistasMapa/VistaPersonal";
 
 export interface PerfilUsuario {
   id: number;
@@ -39,8 +40,8 @@ const VistaMapaNavegacion = dynamic(
 );
 
 const VistaMapaInterior = dynamic(
-    () => import('@/components/VistasMapa/VistaMapaInterior'), 
-    { ssr: false }
+  () => import('@/components/VistasMapa/VistaMapaInterior'),
+  { ssr: false }
 );
 
 
@@ -138,6 +139,22 @@ export default function Home() {
     setOrigen("");
   };
 
+
+  const handleNavegacionPanel = () => {
+    // Si es ADMIN o OWNER, va al panel de administración
+    if (perfil?.rol === 'ADMIN' || perfil?.rol === 'OWNER') {
+      setVistaActual('admin');
+    }
+    // Si es PERSONAL, va a la nueva vista que creamos
+    else if (perfil?.rol === 'PERSONAL') {
+      setVistaActual('personal');
+    }
+  };
+
+  // Luego, en el componente <VistaInicio />, cambiá la prop:
+  // Antes tenías: onIrAdmin={...}
+  // Ahora usá: onIrPanel={handleNavegacionPanel}
+
   const volverASectores = () => setVistaActual("sectores");
 
   // 3. RENDERIZADO
@@ -164,7 +181,7 @@ export default function Home() {
                 perfil={perfil}
                 onLogout={manejarLogout}
                 onLoginSuccess={manejarLoginExitoso}
-                onIrAdmin={() => setVistaActual("admin")}
+                onIrPanel={handleNavegacionPanel}
                 onIrMapaInterior={() => setVistaActual('mapa_interior')}
 
               />
@@ -239,9 +256,17 @@ export default function Home() {
             )}
 
             {vistaActual === 'mapa_interior' && (
-                <VistaMapaInterior 
-                    onVolver={() => setVistaActual('inicio')} 
-                />
+              <VistaMapaInterior
+                onVolver={() => setVistaActual('inicio')}
+              />
+            )}
+
+            {vistaActual === 'personal' && (
+              <VistaPersonal
+                onVolver={() => setVistaActual('inicio')}
+                onLogout={manejarLogout}  
+                perfil={perfil}        
+              />
             )}
 
           </div>
