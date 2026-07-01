@@ -30,8 +30,6 @@ export const mockIncidencias: Incidencia[] = [
 
 // --- MOCKS DE USUARIOS ---
 export const mockUsuariosAdmin = [
-  { id: 1, nombre: "Admin (Vos)", rol: "SuperAdmin", inicial: "J", color: "purple" },
+  { id: 1, nombre: "Admin", rol: "SuperAdmin", inicial: "J", color: "purple" },
   { id: 2, nombre: "Director CFP", rol: "Admin", inicial: "D", color: "blue" }
 ];
-
-//export const mockEstudiantes = [ ... ];

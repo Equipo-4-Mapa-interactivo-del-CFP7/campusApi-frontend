@@ -1,8 +1,7 @@
-"use client"; // Asegurate de poner esto si usás Next.js
+"use client";
 
-import React from 'react';
 import { MapContainer, ImageOverlay, Marker, Popup } from 'react-leaflet';
-import { ArrowLeft, MapPin } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { coordenadasInterior } from "@/data/coordenadasInterior";
@@ -36,20 +35,20 @@ interface Props {
 
 
 export default function VistaMapaInterior({ onVolver }: Props) {
-    
-    // 1. LOS LÍMITES DEL PLANO (Bounds)
+
+    // 1. LOS LÍMITES DEL PLANO
     // Esto es un rectángulo virtual. Si la imagen mide 1000(842) de alto x 1500(595) de ancho.
-    // Le decimos a Leaflet que encaje la imagen exactamente en esas medidas.
+    // Le indicamos a Leaflet que la imagen debe ir exactamente en esas medidas.
     const limitesDelPlano: L.LatLngBoundsExpression = [[0, 0], [500, 1000]];
 
     return (
         <div className="relative w-full h-screen bg-[#e5e7eb] flex flex-col overflow-hidden">
-            
-            {/* BARRA SUPERIOR (Para poder salir del mapa) */}
+
+            {/* Barra Superior Volver (Para poder salir del mapa) */}
             <div className="absolute top-0 left-0 w-full z-1000 p-4 pt-6 bg-linear-to-b from-gray-900/60 to-transparent pointer-events-none">
                 <div className="flex items-center gap-3 w-full max-w-lg mx-auto pointer-events-auto">
-                    <button 
-                        onClick={onVolver} 
+                    <button
+                        onClick={onVolver}
                         className="p-3 bg-white rounded-full shadow-md text-gray-800 hover:text-blue-600 active:scale-95 transition-all shrink-0"
                     >
                         <ArrowLeft size={20} />
@@ -58,27 +57,27 @@ export default function VistaMapaInterior({ onVolver }: Props) {
                 </div>
             </div>
 
-            {/* EL MAPA INTERACTIVO (Modo Plano) */}
+            {/* MAPA INTERACTIVO (Modo Plano) */}
             <div className="absolute inset-0 z-0">
-                <MapContainer 
+                <MapContainer
                     crs={L.CRS.Simple} // Esto apaga el GPS y usa un sistema X/Y simple
-                    bounds={limitesDelPlano} 
+                    bounds={limitesDelPlano}
                     minZoom={-1}       // Permite alejar la cámara 
                     maxZoom={3}        // Permite acercarla
                     zoomControl={false} // Se ocultan los botones de zoom (+/-)
-                    className="w-full h-full" 
+                    className="w-full h-full"
                 >
                     {/* imagen SVG, PNG, WEBP del mapa */}
-                    <ImageOverlay 
+                    <ImageOverlay
                         url="/plano-maqueta.png"
-                        bounds={limitesDelPlano} 
+                        bounds={limitesDelPlano}
                     />
 
                     {/* marcadores dinámicos */}
                     {Object.entries(coordenadasInterior).map(([nombreDelLugar, datos]) => (
                         <Marker key={nombreDelLugar} position={datos.coords}>
                             <Popup>
-                                {/* Usamos Tailwind adentro del Popup para mejor calidad */}
+                                {/* Uso de Tailwind adentro del Popup para mejor calidad */}
                                 <div className="text-center">
                                     <h3 className="font-black text-gray-800 text-sm">{nombreDelLugar}</h3>
                                     <p className="text-xs text-gray-500 mt-1">{datos.descripcion}</p>
@@ -86,7 +85,7 @@ export default function VistaMapaInterior({ onVolver }: Props) {
                             </Popup>
                         </Marker>
                     ))}
-<CazadorDeCoordenadas />
+                    <CazadorDeCoordenadas />
                 </MapContainer>
             </div>
         </div>

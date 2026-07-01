@@ -1,6 +1,6 @@
-import { ArrowLeft, MapPin, CircleDot, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, MapPin, CircleDot } from 'lucide-react';
 import { useState } from 'react';
-import ModalFinalizar from "./ModalFinalizar";
+import ModalFinalizar from "../ui/ModalFinalizar";
 
 interface Props {
   origen: string;

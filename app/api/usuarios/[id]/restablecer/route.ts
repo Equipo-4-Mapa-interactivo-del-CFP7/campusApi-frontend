@@ -1,10 +1,10 @@
+// app/api/usuarios/[dni]/cambiar-rol/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 
-export async function PUT(req: NextRequest, { params }: { params: Promise<{ dni: string }> }) {
-    // Extraemos el DNI usando await
-    const resolvedParams = await params;
-    const dni = resolvedParams.dni;
+// Next.js nos pasa el [dni] directamente en el objeto 'params'
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
 
+    const { id } = await params
     const token = req.headers.get('Authorization');
     const backendUrl = process.env.BACKEND_URL;
 
@@ -13,8 +13,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ dni:
     }
 
     try {
-        // 3. Usamos la variable 'dni' limpia
-        const res = await fetch(`${backendUrl}/api/usuarios/${dni}/cambiar-activo`, {
+        // Usamos el params.dni para armar la URL hacia Java
+        const res = await fetch(`${backendUrl}/api/usuarios/${id}/restablecer`, {
             method: 'PUT',
             headers: {
                 'Authorization': token || '',
@@ -26,7 +26,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ dni:
         return NextResponse.json(data, { status: res.status });
         
     } catch (error) {
-        console.error(`Error cambiando rol para ${dni}:`, error);
+        console.error(`Error cambiando rol para ${id}:`, error);
         return NextResponse.json({ error: 'Fallo al conectar con el backend' }, { status: 500 });
     }
 }

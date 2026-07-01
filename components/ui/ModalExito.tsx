@@ -12,12 +12,12 @@ export default function ModalExito({ onCerrar, titulo = "¡Éxito!", mensaje }: 
         <div className="fixed inset-0 z-101 flex items-center justify-center bg-gray-900/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
             <div className="bg-white rounded-3xl w-full max-w-sm shadow-2xl relative overflow-hidden animate-in zoom-in-95 duration-300 p-8 text-center">
                 
-                {/* Botón cerrar sutil */}
+                {/* Botón cerrar */}
                 <button onClick={onCerrar} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
                     <X size={20} />
                 </button>
 
-                {/* Ícono de éxito con fondo suave */}
+                {/* Ícono de éxito */}
                 <div className="mx-auto w-16 h-16 bg-green-50 text-green-500 rounded-full flex items-center justify-center mb-6">
                     <CheckCircle size={32} />
                 </div>

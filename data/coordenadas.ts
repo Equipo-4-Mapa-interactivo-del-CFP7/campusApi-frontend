@@ -42,5 +42,4 @@ export const rutasCFP: Record<string, [number, number][]> = {
         [-34.55117, -58.44160],
         [-34.55113, -58.44179], // CFP
     ]
-    // Tendrás que ir agregando las combinaciones principales de tu edificio
 };

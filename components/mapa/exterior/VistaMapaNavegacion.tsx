@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, MapPin, Navigation2, ArrowLeft, CheckCircle2, Layers } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap, Tooltip } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import { coordenadasCFP, rutasCFP } from '@/data/coordenadas'; // Ajustá esta ruta según donde creaste el archivo
+import { coordenadasCFP, rutasCFP } from '@/data/coordenadas';
 import Image from "next/image";
 import { useMapEvents } from "react-leaflet";
 
@@ -23,7 +23,7 @@ const iconDefault = L.icon({
 L.Marker.prototype.options.icon = iconDefault;
 
 // --- EL COMPONENTE "CÁMARA" ---
-// Este componente no dibuja nada en pantalla, solo manipula el mapa internamente
+// Este componente solo manipula el mapa internamente
 function ControladorCamara({ centro, zoom }: { centro: [number, number], zoom: number }) {
     const map = useMap();
     useEffect(() => {
@@ -131,7 +131,7 @@ export default function VistaMapaNavegacion({ onVolver, sectores, origenInicial,
                 (coordOrig[1] + coordDest[1]) / 2
             ];
             setCentroMapa(puntoMedio);
-            setZoomMapa(18); // Alejamos para que se vea toda la línea
+            setZoomMapa(18);
         }
     };
 
@@ -181,7 +181,7 @@ export default function VistaMapaNavegacion({ onVolver, sectores, origenInicial,
 
             {/* 2. EL MAPA INTERACTIVO (Leaflet) */}
             <div className="absolute inset-0 z-0">
-                {/* Ocultamos los controles de zoom con zoomControl={false} para un look más de app móvil */}
+                {/* Se oculta los controles de zoom con zoomControl={false} */}
                 <MapContainer center={centroMapa} zoom={zoomMapa} className="w-full h-full" zoomControl={false}>
 
                     {/* El mapa cambia dinámicamente según lo que elija el usuario */}
@@ -197,7 +197,7 @@ export default function VistaMapaNavegacion({ onVolver, sectores, origenInicial,
                     {/* MARCADOR DEL DESTINO (Solo si hay destino fijado) */}
                     {destino && coordenadasCFP.sectores[destino] && (
                         <Marker position={coordenadasCFP.sectores[destino]}>
-                            {/* direction="top" lo pone arriba del pin. offset ajusta la altura para que no tape la punta */}
+
                             <Tooltip permanent direction="top" offset={[0, -40]} className="tooltip-premium">
                                 <div className="bg-gray-800 text-white text-xs font-black px-3 py-1.5 rounded-2xl shadow-lg border-2 border-white/20 backdrop-blur-md">
                                     Tu destino: <span className="text-blue-300">{destino}</span>
@@ -209,10 +209,10 @@ export default function VistaMapaNavegacion({ onVolver, sectores, origenInicial,
                     {/* MARCADOR DEL ORIGEN (Solo si hay origen fijado) */}
                     {origen && coordenadasCFP.origenes[origen] && (
                         <Marker position={coordenadasCFP.origenes[origen]}>
-                            {/* direction="bottom" lo pone abajo del pin */}
+
                             <Tooltip permanent direction="top" offset={[0, -40]} className="tooltip-premium">
                                 <div className="flex items-center bg-blue-600 text-white text-xs font-black px-3 py-1.5 rounded-2xl shadow-lg border-2 border-white">
-                                    {/* Un puntito extra que parpadea para llamar la atención */}
+                                    {/* puntito extra que parpadea */}
                                     <span className="w-2 h-2 rounded-full bg-blue-200 mr-2 animate-pulse"></span>
                                     Estás aquí
                                 </div>
@@ -234,24 +234,24 @@ export default function VistaMapaNavegacion({ onVolver, sectores, origenInicial,
 
                             return (
                                 <>
-                                    {/* 1. LA LÍNEA BASE (Sólida y un poco transparente) */}
+                                    {/* 1. LA LÍNEA BASE */}
                                     <Polyline 
                                         positions={posicionesDeRuta} 
-                                        color="#93c5fd" // Un azul más clarito (blue-300)
+                                        color="#93c5fd" // Un azul más claro (blue-300)
                                         weight={6} 
                                         lineCap="round" 
                                         lineJoin="round"
                                         opacity={0.6} // Semi-transparente
                                     />
 
-                                    {/* 2. LA LÍNEA ANIMADA (El pulso de luz que viaja) */}
+                                    {/* 2. LA LÍNEA ANIMADA */}
                                     <Polyline 
                                         positions={posicionesDeRuta} 
-                                        color="#2563eb" // Un azul bien fuerte (blue-600)
+                                        color="#2563eb" // Un azul fuerte (blue-600)
                                         weight={6} 
                                         lineCap="round" 
                                         lineJoin="round"
-                                        pathOptions={{ className: 'luz-guia' }} // Le ponemos nuestra nueva clase
+                                        pathOptions={{ className: 'luz-guia' }} // Se usa la nueva clase
                                     />
                                 </>
                             );
@@ -261,17 +261,17 @@ export default function VistaMapaNavegacion({ onVolver, sectores, origenInicial,
                 </MapContainer>
                 {/* Botón flotante para cambiar el mapa (Capa superior) */}
                 <div className="absolute bottom-28 right-4 z-1000 flex flex-col items-end">
-                    {/* Menú desplegable, aparece si hacemos clic en el botón */}
+                    {/* Menú desplegable, aparece si se hace clic en el botón */}
                     {mostrarCapas && (
                         <div className="bg-white/90 backdrop-blur-md p-2 rounded-2xl shadow-xl border border-gray-200 mb-3 flex flex-col gap-2 animate-in fade-in slide-in-from-bottom-4">
                             <button onClick={() => { setTipoMapa('claro'); setMostrarCapas(false); }} className={`px-4 py-2 text-sm font-bold rounded-xl transition-colors ${tipoMapa === 'claro' ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:bg-gray-100'}`}>
-                                ⚪ Modo Claro
+                                 Modo Claro
                             </button>
                             <button onClick={() => { setTipoMapa('oscuro'); setMostrarCapas(false); }} className={`px-4 py-2 text-sm font-bold rounded-xl transition-colors ${tipoMapa === 'oscuro' ? 'bg-gray-800 text-white' : 'text-gray-600 hover:bg-gray-100'}`}>
-                                ⚫ Alto Contraste
+                                 Alto Contraste
                             </button>
                             <button onClick={() => { setTipoMapa('satelite'); setMostrarCapas(false); }} className={`px-4 py-2 text-sm font-bold rounded-xl transition-colors ${tipoMapa === 'satelite' ? 'bg-green-100 text-green-800' : 'text-gray-600 hover:bg-gray-100'}`}>
-                                🌍 Satélite
+                                 Satélite
                             </button>
                         </div>
                     )}
@@ -287,7 +287,7 @@ export default function VistaMapaNavegacion({ onVolver, sectores, origenInicial,
             </div>
 
             {/* 3. BOTTOM SHEET (Tarjeta inferior) */}
-            {/* z-[1000] es importante para que esté por encima de Leaflet */}
+            {/* z-[1000] para que esté por encima de Leaflet */}
             <div className="absolute bottom-0 left-0 w-full bg-white rounded-t-4xl shadow-[0_-10px_40px_rgba(0,0,0,0.1)] z-1000 flex flex-col max-h-[60vh]">
                 {fase === 'buscando_origen' && (
                     <div className="p-6 animate-in slide-in-from-bottom-8 duration-300">

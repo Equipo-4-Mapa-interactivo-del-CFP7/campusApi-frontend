@@ -2,16 +2,16 @@
 
 import dynamic from "next/dynamic";
 import { useState, useEffect } from 'react';
-import VistaInicio from '@/components/VistasMapa/VistaInicio';
-import VistaSectores from '@/components/VistasMapa/VistaSectores';
-import VistaFicha from '@/components/VistasMapa/VistaFicha';
-import VistaOrigen from '@/components/VistasMapa/VistaOrigen';
-import VistaRuta from '@/components/VistasMapa/VistaRuta';
-import VistaAdmin from "@/components/VistasMapa/VistaAdmin";
-import VistaAccesibilidad from "@/components/VistasMapa/VistaAccesibilidad";
+import VistaInicio from '@/components/inicio/VistaInicio';
+import VistaSectores from '@/components/mapa/VistaSectores';
+import VistaFicha from '@/components/mapa/VistaFicha';
+import VistaOrigen from '@/components/mapa/VistaOrigen';
+import VistaRuta from "@/components/mapa/VistaRuta";
+import VistaAdmin from "@/components/admin/VistaAdmin";
+import VistaAccesibilidad from "@/components/accesibilidad/VistaAccesibilidad";
 import { AccesibilidadProvider } from "@/context/AccesibilidadContext";
-import LayoutAccesibilidad from "@/components/LayoutAccesibilidad";
-import VistaPersonal from "@/components/VistasMapa/VistaPersonal";
+import LayoutAccesibilidad from "@/components/accesibilidad/LayoutAccesibilidad";
+import VistaPersonal from "@/components/personal/VistaPersonal";
 
 export interface PerfilUsuario {
   id: number;
@@ -24,7 +24,7 @@ export interface PerfilUsuario {
 
 
 const VistaComollegar = dynamic(
-  () => import('@/components/VistasMapa/VistaComollegar'),
+  () => import('@/components/mapa/VistaComollegar'),
   {
     ssr: false,
     loading: () => <p className="text-center p-4 text-gray-500">Cargando módulo de mapa...</p>
@@ -32,7 +32,7 @@ const VistaComollegar = dynamic(
 );
 
 const VistaMapaNavegacion = dynamic(
-  () => import('@/components/VistasMapa/VistaMapaNavegacion'),
+  () => import('@/components/mapa/exterior/VistaMapaNavegacion'),
   {
     ssr: false,
     loading: () => <p className="text-center p-4 text-gray-500">Cargando interfaz de mapas...</p>
@@ -40,7 +40,7 @@ const VistaMapaNavegacion = dynamic(
 );
 
 const VistaMapaInterior = dynamic(
-  () => import('@/components/VistasMapa/VistaMapaInterior'),
+  () => import('@/components/mapa/interior/VistaMapaInterior'),
   { ssr: false }
 );
 
@@ -141,19 +141,15 @@ export default function Home() {
 
 
   const handleNavegacionPanel = () => {
-    // Si es ADMIN o OWNER, va al panel de administración
+    // Si es ADMIN u OWNER, va al panel de administración
     if (perfil?.rol === 'ADMIN' || perfil?.rol === 'OWNER') {
       setVistaActual('admin');
     }
-    // Si es PERSONAL, va a la nueva vista que creamos
+    // Si es PERSONAL, va a la vista de Personal
     else if (perfil?.rol === 'PERSONAL') {
       setVistaActual('personal');
     }
   };
-
-  // Luego, en el componente <VistaInicio />, cambiá la prop:
-  // Antes tenías: onIrAdmin={...}
-  // Ahora usá: onIrPanel={handleNavegacionPanel}
 
   const volverASectores = () => setVistaActual("sectores");
 

@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-export async function POST(req: NextRequest) {
+// Next.js nos pasa el [dni] directamente en el objeto 'params'
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+    const resolvedParams = await params;
+    const id = resolvedParams
+
     const token = req.headers.get('Authorization');
     const backendUrl = process.env.BACKEND_URL;
 
@@ -9,28 +13,20 @@ export async function POST(req: NextRequest) {
     }
 
     try {
-        // 1. Obtenemos el cuerpo de la petición que viene del Frontend
-        const body = await req.json();
-
-        // 2. Reenviamos la petición al Backend Java
-        const res = await fetch(`${backendUrl}/api/usuarios/registrar`, {
-            method: 'POST',
+        // Usamos el params.dni para armar la URL hacia Java
+        const res = await fetch(`${backendUrl}/api/usuarios/${id}`, {
+            method: 'GET',
             headers: {
                 'Authorization': token || '',
                 'Content-Type': 'application/json',
             },
-            // Pasamos el cuerpo tal cual llegó del front
-            body: JSON.stringify(body), 
         });
 
-        // 3. Obtenemos la respuesta del backend
         const data = await res.json().catch(() => ({}));
-        
-        // 4. Devolvemos el estado y los datos al Frontend
         return NextResponse.json(data, { status: res.status });
         
     } catch (error) {
-        console.error('Error registrando usuario:', error);
+        console.error(`Error cambiando rol para ${id}:`, error);
         return NextResponse.json({ error: 'Fallo al conectar con el backend' }, { status: 500 });
     }
 }

@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-export async function PUT(req: NextRequest, { params }: { params: Promise<{ dni: string }> }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     const resolvedParams = await params;
-    const dni = resolvedParams.dni;
-
+    const id = resolvedParams.id;
     const token = req.headers.get('Authorization');
     const backendUrl = process.env.BACKEND_URL;
 
@@ -12,20 +11,22 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ dni:
     }
 
     try {
-        // Usamos el params.dni para armar la URL hacia Java
-        const res = await fetch(`${backendUrl}/api/usuarios/${dni}/cambiar-rol`, {
-            method: 'PUT',
+        const res = await fetch(`${backendUrl}/api/usuarios/${id}/eliminar`, {
+            method: 'POST',
             headers: {
                 'Authorization': token || '',
                 'Content-Type': 'application/json',
             },
         });
 
+        if (res.status === 204) {
+            return new NextResponse(null, { status: 204 });
+        }
+
         const data = await res.json().catch(() => ({}));
         return NextResponse.json(data, { status: res.status });
-        
     } catch (error) {
-        console.error(`Error cambiando rol para ${dni}:`, error);
-        return NextResponse.json({ error: 'Fallo al conectar con el backend' }, { status: 500 });
+        console.error("Error al ejecutar eliminación ofuscada:", error);
+        return NextResponse.json({ error: 'Error en la operación de eliminación' }, { status: 500 });
     }
 }

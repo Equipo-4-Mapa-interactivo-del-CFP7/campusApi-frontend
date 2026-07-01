@@ -3,13 +3,19 @@ import { LogOut, MapPin, TriangleAlert, ArrowLeft, Eye, Plus, CheckCircle2, Cloc
 import { mockIncidencias, mockSanitariosAbiertos } from "@/data/mockData";
 import { PerfilUsuario } from "@/app/page";
 
+type Props = {
+    onLogout: () => void;
+    onVolver: () => void;
+    perfil?: PerfilUsuario | null;
+}
+
 export default function VistaPersonal({ onLogout, onVolver, perfil }: Props) {
     const [incidencias, setIncidencias] = useState(mockIncidencias);
 
-    const handleMarcarResuelto = (id: string) => {
-        // En un caso real, aquí iría el fetch al backend
+    const handleMarcarResuelto = (id: number) => {
+        // acá iría el fetch al backend
         setIncidencias(prev => prev.filter(i => i.id !== id));
-        // Aquí podrías agregar un Toast de "Incidencia marcada como resuelta"
+        // acá se podría agregar un Toast de "Incidencia marcada como resuelta"
     };
 
     return (
@@ -30,7 +36,7 @@ export default function VistaPersonal({ onLogout, onVolver, perfil }: Props) {
 
             <main className="max-w-5xl mx-auto w-full p-6 space-y-6">
                 
-                {/* 1. SECCIÓN DE ACCIÓN RÁPIDA (UX Premium) */}
+                {/* 1. SECCIÓN DE ACCIÓN RÁPIDA */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <button className="bg-white p-6 rounded-3xl border border-blue-100 shadow-sm hover:shadow-md transition-all flex items-center justify-between group cursor-pointer">
                         <div className="text-left">

@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Map, MapPinned, TriangleAlert, Settings, Search, DoorOpen, Users, UserCircle2, Navigation, LogOut, X, ChevronRight } from 'lucide-react';
+import { Map, MapPinned, TriangleAlert, Settings, UserCircle2, LogOut, X, ChevronRight } from 'lucide-react';
 import Image from 'next/image';
-import ModalLogin from "./ModalLogin";
-import { useAccesibilidad } from "@/context/AccesibilidadContext";
+import ModalLogin from "../auth/ModalLogin";
 import { PerfilUsuario } from "@/app/page";
 
 interface Props {
@@ -21,9 +20,6 @@ interface Props {
 };
 
 export default function VistaInicio({
-    onIrASectores,
-    sectores,
-    onSeleccionarDestino,
     estaLogueado,
     onIrPanel,
     onLogout,
@@ -36,8 +32,8 @@ export default function VistaInicio({
 }: Props) {
 
     const [saludo, setSaludo] = useState("¡Hola!");
+    const [fueraDeHorario, setFueraDeHorario] = useState(false);
     const [mostrarLogin, setMostrarLogin] = useState(false);
-    const { config } = useAccesibilidad();
     const [mostrarAviso, setMostrarAviso] = useState(false);
     // Estado para controlar qué acceso se está previsualizando
     const [previaAcceso, setPreviaAcceso] = useState<string | null>(null);
@@ -53,12 +49,20 @@ export default function VistaInicio({
 
     useEffect(() => {
         const horaActual = new Date().getHours();
+        // Lógica de saludo
         if (horaActual >= 6 && horaActual < 12) {
             setSaludo("Buenos días");
         } else if (horaActual >= 12 && horaActual < 20) {
             setSaludo("Buenas tardes");
         } else {
             setSaludo("Buenas noches");
+        }
+
+        // Lógica de horario
+        if (horaActual < 8 || horaActual >= 18) {
+            setFueraDeHorario(true);
+        } else {
+            setFueraDeHorario(false);
         }
     }, []);
 
@@ -69,58 +73,82 @@ export default function VistaInicio({
             {/* HEADER IMAGEN (CFP) DE FONDO */}
             {/* Se agrega md:min-h-[380px] para darle un poco más de aire en PC */}
             <header className="relative px-6 pt-12 pb-8 min-h-80 md:min-h-95 flex flex-col justify-end border-b border-gray-100 rounded-b-3xl shadow-sm">
-                <div className="absolute inset-0 z-0 flex flex-col overflow-hidden rounded-b-3xl">
-                    <Image
-                        src="/Home-bg-CFP7.png"
-                        alt="Frente del CFP N.7"
-                        width={1268}
-                        height={272}
-                        sizes="(max-width: 768px) 100vw,
-                                (max-width: 1200px) 80vw,
-                                60vw"
-                        /* LÓGICA RESPONSIVE: 
-                           En celulares -> w-full h-auto (normal)
-                           En md/lg -> altura congelada a 180px/220px y object-cover para que recorte sin deformarse */
-                        className="w-full h-auto md:h-45 lg:h-75 md:object-cover md:object-center shrink-0"
-                        priority
-                    />
-                    <div className="flex-1 w-full bg-linear-to-b from-[#41b0cb] to-gray-100 -mt-px"></div>
+                <div className="absolute inset-0 z-0 overflow-hidden rounded-b-3xl bg-linear-to-b from-[#41b0cb] to-gray-100 transform-gpu will-change-transform">
+
+                    {/* Contenedor de logos */}
+                    {/* pt-6 y px-6 aseguran que los logos estén alineados con el padding general del Header */}
+                    <div className="w-full pt-6 px-6 flex justify-between items-start">
+
+                        {/* LOGO IZQUIERDA (BA) */}
+                        <div className="relative w-32 h-12 md:w-40 md:h-16">
+                            <Image
+                                src="/ba_vamosba_blanco.webp"
+                                alt="Gobierno de la Ciudad de Buenos Aires"
+                                fill
+                                className="object-contain object-left"
+                                priority
+                                sizes="(max-width: 768px) 128px, 160px"
+                            />
+                        </div>
+
+                        {/* LOGO DERECHA (CFP7)*/}
+                        <div className="relative w-32 h-12 md:w-40 md:h-16 pr-16 md:pr-40">
+                            <Image
+                                src="/logoCFP7.png"
+                                alt="Logo Institución"
+                                fill
+                                className="object-contain object-right"
+                                priority
+                                sizes="(max-width: 768px) 128px, 160px"
+                            />
+                        </div>
+
+                    </div>
                 </div>
 
                 {/* Contenedor centralizado */}
                 <div className="w-full max-w-5xl mx-auto relative z-30 flex flex-col h-full justify-end">
 
                     {/* Barra superior con Login / Usuario */}
-                    <div className="absolute top-6 right-1 z-50">
+                    <div className="absolute top-8 md:top-6 right-2 z-50">
                         {!estaLogueado ? (
                             <button
                                 onClick={() => setMostrarLogin(true)}
-                                className="flex items-center gap-3 bg-white/95 backdrop-blur-xl px-5 py-3 rounded-2xl border border-white/60 shadow-lg hover:shadow-xl hover:bg-white transition-all active:scale-95 group"
+                                // En móvil: p-3 y rounded-full (botón circular pequeño). 
+                                // En PC (md): px-5 py-3 y rounded-2xl (botón ancho).
+                                className="flex items-center gap-3 bg-white/95 backdrop-blur-md p-3 md:px-5 md:py-3 rounded-full md:rounded-2xl border border-white/60 shadow-lg hover:shadow-xl hover:bg-white transition-all active:scale-95 group"
+                                title="Iniciar sesión"
                             >
-                                <UserCircle2 size={22} className="text-gray-600 group-hover:text-blue-600 transition-colors" />
-                                <div className="text-left">
+                                <UserCircle2 size={24} className="text-gray-600 group-hover:text-blue-600 transition-colors" />
+
+                                {/* El texto desaparece en móvil (hidden) y aparece en md (md:block) */}
+                                <div className="hidden md:block text-left">
                                     <p className="text-sm font-semibold text-gray-800">Iniciar sesión</p>
                                     <p className="text-xs text-gray-500 -mt-0.5">Equipo CFP 7</p>
                                 </div>
                             </button>
                         ) : (
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2 md:gap-3">
+                                {/* El saludo "Hola, Admin" se oculta en móvil para no saturar */}
                                 <div className="hidden md:flex items-center bg-white/90 backdrop-blur-md px-4 py-2 rounded-2xl text-sm font-medium text-gray-700 shadow">
                                     <UserCircle2 size={18} className="mr-2 text-blue-600" />
                                     Hola, {perfil?.nombre || 'Admin'}
                                 </div>
 
+                                {/* El botón de Panel se vuelve un ícono circular en móvil */}
                                 <button
                                     onClick={onIrPanel}
-                                    className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-2xl font-semibold text-sm transition-all active:scale-95 shadow"
+                                    className="flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white p-3 md:px-5 md:py-2.5 rounded-full md:rounded-2xl font-semibold transition-all active:scale-95 shadow"
+                                    title="Ir al panel"
                                 >
-                                    <Settings size={18} />
-                                    Panel
+                                    <Settings size={20} className="md:w-4.5 md:h-4.5" />
+                                    <span className="hidden md:inline ml-2 text-sm">Panel</span>
                                 </button>
 
+                                {/* Botón de Logout circular */}
                                 <button
                                     onClick={onLogout}
-                                    className="p-3 bg-white/90 backdrop-blur-md text-red-500 hover:bg-red-500 hover:text-white rounded-2xl transition-all active:scale-95"
+                                    className="p-3 bg-white/90 backdrop-blur-md text-red-500 hover:bg-red-500 hover:text-white rounded-full md:rounded-2xl transition-all active:scale-95 shadow-sm"
                                     title="Cerrar sesión"
                                 >
                                     <LogOut size={20} />
@@ -130,7 +158,7 @@ export default function VistaInicio({
                     </div>
 
 
-                    <div className="relative z-10 px-6 pb-10 max-w-5xl mx-auto w-full">
+                    <div className="relative z-10 px-6 pt-24 pb-10 max-w-5xl mx-auto w-full">
                         <div className="text-white">
                             <p className="text-4xl md:text-5xl font-black tracking-tighter mb-2 drop-shadow-sm">
                                 {saludo}
@@ -138,7 +166,15 @@ export default function VistaInicio({
                             <p className="text-xl md:text-2xl font-light text-white/90">
                                 ¿Dónde empezamos hoy?
                             </p>
-                        </div> 
+                            {fueraDeHorario && (
+                                <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-amber-500/40 border border-amber-400/40 rounded-xl backdrop-blur-md animate-in fade-in slide-in-from-bottom-2">
+                                    <TriangleAlert size={18} className="text-amber-200" />
+                                    <p className="text-sm font-medium text-amber-80">
+                                        Fuera del horario de atención. Algunos espacios podrían estar cerrados.
+                                    </p>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </header>
@@ -159,7 +195,7 @@ export default function VistaInicio({
                     </div>
                 )}
 
-                {/* BOTÓN DESTACADO PARA MAPA INTERIOR */}
+                {/* BOTÓN PARA MAPA INTERIOR */}
                 <button
                     onClick={onIrMapaInterior}
                     className="w-full mb-8 relative overflow-hidden group bg-white border border-gray-100 rounded-3xl p-0 shadow-sm hover:shadow-lg transition-all active:scale-[0.98]"
@@ -286,6 +322,7 @@ export default function VistaInicio({
                                 alt={`Foto de ${previaAcceso}`}
                                 fill
                                 className="object-cover"
+                                sizes="(max-width: 768px) 100vw, 400px"
                             />
                             {/* Etiqueta superpuesta */}
                             <div className="absolute bottom-3 left-3 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold text-gray-700 shadow-sm">
